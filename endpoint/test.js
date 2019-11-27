@@ -54,7 +54,7 @@ test.post('/', async (req, res)=>{
   }
 })
 
-test.get('/', async (req, res)=>{
+test.get('/aa', async (req, res)=>{
   try{
     log('test req.body=', req.body)
     res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:'Good Server~~~'}})
@@ -65,16 +65,56 @@ test.get('/', async (req, res)=>{
   }
 })
 
-test.get('/aaa', async (req, res)=>{
+test.get('/', async (req, res)=>{
   try{
     log('test req.body=', req.body)
-    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:'Good Server~~~'}})
+    var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getPdAcctoSttusInfoSearch'; /*URL*/
+    var queryParams1 = '?' + encodeURIComponent('ServiceKey') + '='+'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%2BHfO2xsBk%2FxgRdUqx3w9Oc9v1Gw%3D%3D'; /*Service Key*/
+    queryParams1 += '&' + encodeURIComponent('seq') + '=' + encodeURIComponent('17735069'); /*식별번호*/
+    queryParams1 += '&' + encodeURIComponent('data_crt_ym') + '=' + encodeURIComponent('201806'); /*년월(yyyymm)*/
+
+    var myKey = 'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%2BHfO2xsBk%2FxgRdUqx3w9Oc9v1Gw%3D%3D'
+    // var myKey = 'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%252BHfO2xsBk%252FxgRdUqx3w9Oc9v1Gw%253D%253D'
+    var request = require('request');
+    var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getBassInfoSearch';
+
+    var queryParams1 =  {
+      ServiceKey: decodeURIComponent(myKey),
+      // typename: 'F166',
+      // seq: encodeURIComponent('17735069'),
+      // data_crt_ym: encodeURIComponent('201806'),
+      wkpl_nm: encodeURIComponent('삼구골프클럽')
+
+    };
+
+    var queryParams = '?' + encodeURIComponent('ServiceKey') + '=' + myKey; /* Service Key*/
+    // queryParams += '&' + encodeURIComponent('ldong_addr_mgpl_dg_cd') + '=' + encodeURIComponent('41'); /* 시도(행정자치부 법정동 주소코드 참조) */
+    // queryParams += '&' + encodeURIComponent('ldong_addr_mgpl_sggu_cd') + '=' + encodeURIComponent('117'); /* 시군구(행정자치부 법정동 주소코드 참조) */
+    // queryParams += '&' + encodeURIComponent('ldong_addr_mgpl_sggu_emd_cd') + '=' + encodeURIComponent('101'); /* 읍면동(행정자치부 법정동 주소코드 참조) */
+    queryParams += '&' + encodeURIComponent('wkpl_nm') + '=' + encodeURIComponent('삼성전자'); /* 사업장명 */
+    queryParams += '&' + encodeURIComponent('bzowr_rgst_no') + '=' + encodeURIComponent('124815'); /* 사업자등록번호(앞에서 6자리) */
+    queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('10'); /* 페이지번호 */
+    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('1'); /* 행갯수 */
+
+    request({url:url + queryParams, method: 'GET'}, function(err, response, body) {
+      if(err) { console.log(err); return; }
+
+      // sails.log.info('20181002 -  Status: '+response.statusCode+' Body: '+JSON.stringify(response))
+      sails.log.info('20181002 -  Status: '+response.statusCode+' Body: '+response)
+      sails.log.info("Get response: " + response);
+      // res.ok(JSON.stringify(response.pnu))
+      // res.ok(body)
+      res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:body}})
+    });
+
+
   }
   catch(err){
     log('err=',err)
     res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
   }
 })
+
 
 
 
