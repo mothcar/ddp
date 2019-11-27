@@ -65,6 +65,17 @@ test.get('/', async (req, res)=>{
   }
 })
 
+test.get('/aaa', async (req, res)=>{
+  try{
+    log('test req.body=', req.body)
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:'Good Server~~~'}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+})
+
 
 
 
