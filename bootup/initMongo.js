@@ -21,6 +21,7 @@ const initMongo = async ()=>{
     // init schema
     await require('../model/users')
     await require('../model/bjcode')
+    await require('../model/infocenter')
 
     await require('./initTestDate')
 

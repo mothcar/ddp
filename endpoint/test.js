@@ -6,6 +6,9 @@ const xlsx    = require('xlsx')
 const test    = express.Router({})
 const dateFormat = require('dateformat');
 
+var dotenv = require('dotenv')
+dotenv.config()
+
 //--------------------------------------------------
 // crawling  functions
 //--------------------------------------------------
@@ -56,7 +59,9 @@ test.post('/', async (req, res)=>{
 
 test.get('/aa', async (req, res)=>{
   try{
-    log('test req.body=', req.body)
+
+    // log('@@ Env : ', process.env.API_KEY)
+    log('@@ Env : ', process.env)
     res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:'Good Server~~~'}})
   }
   catch(err){
@@ -68,15 +73,16 @@ test.get('/aa', async (req, res)=>{
 test.get('/', async (req, res)=>{
   try{
     log('test req.body=', req.body)
+    var myKey = process.env.BUILDING_INFO_API
     var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getPdAcctoSttusInfoSearch'; /*URL*/
-    var queryParams1 = '?' + encodeURIComponent('ServiceKey') + '='+'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%2BHfO2xsBk%2FxgRdUqx3w9Oc9v1Gw%3D%3D'; /*Service Key*/
+    var queryParams1 = '?' + encodeURIComponent('ServiceKey') + '='+myKey; /*Service Key*/
     queryParams1 += '&' + encodeURIComponent('seq') + '=' + encodeURIComponent('17735069'); /*식별번호*/
     queryParams1 += '&' + encodeURIComponent('data_crt_ym') + '=' + encodeURIComponent('201806'); /*년월(yyyymm)*/
 
-    var myKey = 'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%2BHfO2xsBk%2FxgRdUqx3w9Oc9v1Gw%3D%3D'
-    // var myKey = 'S9EORKDWDn2xoJXvsM66ouTCMcgDfuGYqBdB6owI1J3LyuZ9F6c4IqVaFaX%252BHfO2xsBk%252FxgRdUqx3w9Oc9v1Gw%253D%253D'
+    
     var request = require('request');
-    var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getBassInfoSearch';
+    // var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getBassInfoSearch';
+    var url = 'http://apis.data.go.kr/1611000/BldRgstService/getBrHsprcInfo';
 
     var queryParams1 =  {
       ServiceKey: decodeURIComponent(myKey),
@@ -100,8 +106,8 @@ test.get('/', async (req, res)=>{
       if(err) { console.log(err); return; }
 
       // sails.log.info('20181002 -  Status: '+response.statusCode+' Body: '+JSON.stringify(response))
-      sails.log.info('20181002 -  Status: '+response.statusCode+' Body: '+response)
-      sails.log.info("Get response: " + response);
+      console.log('20181002 -  Status: '+response.statusCode+' Body: '+response)
+      console.log("Get response: " + response);
       // res.ok(JSON.stringify(response.pnu))
       // res.ok(body)
       res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:body}})
@@ -114,6 +120,233 @@ test.get('/', async (req, res)=>{
     res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
   }
 })
+
+
+// *****************************************************
+// Admin insert DB
+// *****************************************************
+
+// import DB INIT
+
+
+test.get('/insertDb', async (req, res)=>{
+  try{
+    // const request = require('ajax-request');
+    log('test req.body= :', req.body)
+
+    const fetch = require("node-fetch");
+    // var url = 'https://apis.openapi.sk.com/tmap/geo/convertAddress?version=1&format=json&callback=result'
+    var API_KEY = process.env.SK_API_KEY
+
+    var newData = []
+
+    const csvFilePath='./admini.csv';
+    const csv=require('csvtojson')
+    const converter=csv({
+        noheader:true,
+        // delimiter: '\n',
+        delimiter: ','
+    })
+
+    let raw = await csv().fromFile(csvFilePath)
+
+    // raw.forEach(row=>{
+    //   // console.log('raw : ', );
+    // })
+
+    // for(var i=0; data.length>i;i++){
+    //
+    //   // console.log('## bStart : ', bStart)
+    //
+    //   data[i].options =
+    //     {
+    //       a: {name: fullString.slice(0, bStart-1), userRes:'(A)'},
+    //       b: {name: fullString.slice(bStart-1, cStart-1), userRes:'(B)'} ,
+    //       c: {name: fullString.slice(cStart-1, dStart-1), userRes:'(C)'} ,
+    //       d: {name: fullString.slice(dStart-1, fullLength), userRes:'(D)'}
+    //     }
+    // } // for
+
+    // const forLoop = async _ => {
+    //   console.log('Start')
+    //
+    //   for (let index = 0; index < fruitsToGet.length; index++) {
+    //     const fruit = fruitsToGet[index]
+    //     const numFruit = await getNumFruit(fruit)
+    //     console.log(numFruit)
+    //   }
+    //
+    //   console.log('End')
+    // } // forLoop
+
+    console.log('@@ length ; ', raw.length)
+
+    // for(var i=0; raw.length>i;i++) {
+    for(var i=0; 3615>i;i++) {
+      var list = ['1시도_시','2시도_도','3시군구_시','4시군구_군','5시군구_구','6읍면동_읍','7읍면동_면','8읍면동_동','9읍면동_센터']
+      var check = raw[i].유형_2
+      // var keys
+      if(list.includes(check)) {
+        // keys = Object.keys( raw[i] );
+        // newData.push(keys[8].value)
+        // newData.push(Object.values(raw[i])[8])
+        // newData.push(raw[i])
+        console.log('@@@ start')
+        console.log('@@@ adress : ', Object.values(raw[i])[8])
+
+        var params = "&appKey=" + API_KEY;
+        params = params + '&searchTypCd=' + 'NtoO';
+        params = params + '&reqAdd=' + encodeURIComponent(Object.values(raw[i])[8]);
+
+
+
+        await fetch(`https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result`+params, {
+          headers: {
+            Authorization: `${API_KEY}`
+          }
+        })
+        .then(response => response.json())
+        .then(json => {
+           // 받은 json으로 기능 구현
+           console.log(json.ConvertAdd.oldLat);
+           console.log(typeof json.ConvertAdd.oldLat);
+           newData.push(json)
+
+           var inputParam = {}
+           var intCode = parseInt(raw[i].기관코드)
+           var intZip = parseInt(Object.values(raw[i])[7])
+           inputParam.center_code = intCode.toString()
+           inputParam.type        = raw[i].유형_2
+           inputParam.name        = raw[i].최하위기관명
+           inputParam.full_address = json.ConvertAdd.primary
+           inputParam.road_address = Object.values(raw[i])[8]
+           inputParam.tel         = raw[i].대표전화번호
+           inputParam.zip         = intZip.toString()
+           inputParam.bjcode = ''
+           inputParam.floor = ''
+           inputParam.place_type = ''
+           inputParam.r_depth_1 = ''
+           inputParam.r_depth_2 = ''
+           inputParam.r_depth_3 = ''
+           // inputParam.admin_id =  ''
+           inputParam.admin_name = ''
+           inputParam.infocenter_level =  '' // tab-1 or tab-2
+           inputParam.description = ''
+           inputParam.image = ''
+
+           var pre_lat = json.ConvertAdd.newAddressList.newAddress[0].newLat
+           var lat = Number(pre_lat)
+           var pre_lng = json.ConvertAdd.newAddressList.newAddress[0].newLon
+           var lng = Number(pre_lng)
+
+           inputParam.location = {
+             type: 'Point',
+             coordinates: [lng,lat]
+           }
+
+           // find if no
+           Infocenter.create(inputParam)
+           .then(result=>{
+             log('new infocenter reuslt : ', result)
+           })
+
+             // return res.status(200).json({msg:RCODE.OPERATION_SUCCEED, data:{item:result}})
+           // this.setState({
+           //   place_name: json.documents.place_name,
+           //   ...
+           // });
+        })
+
+
+
+
+
+      }
+
+
+
+
+      // var quiz = {}
+      // var start = raw[i].field4.lastIndexOf("(A)")
+      // var end = raw[i].field4.length
+      // var m_choice = raw[i].field4.slice(start, end)
+      // var fullString = m_choice
+
+      // var fullLength = fullString.length
+      // var bStart = fullString.indexOf('(B)')
+      // var cStart = fullString.indexOf('(C)')
+      // var dStart = fullString.indexOf('(D)')
+      //
+      // let originText = raw[i].field4.slice(0, start-1)
+      // let removeLine = originText.replace(/^.*====.*$/mg, '<br />');
+      // let minusText = removeLine.replace(/^.*-----.*$/mg, '<br />');
+      // let finalText = minusText.replace(/(?:\r\n|\r|\n)/g, '<br />')
+
+
+      // let rawNewLineText = raw[i].field4.slice(0, start-1)
+      // let newLineText = rawNewLineText.replace(/(?:\r\n|\r|\n)/g, '<br />')
+      // var lines = newLineText.split('\n');
+      // var lines = newLineText.split('\n');
+      //
+      // for(var i = 0;i < lines.length;i++){
+      //     console.log(lines[i].indexOf('===='))
+      //     if(lines[i].indexOf('====')==0 ||lines[i].indexOf('----')==0) {
+      //       lines[i] = '<br />'
+      //     }
+      // }
+      // var newtext = lines.join('\n');
+
+      // quiz.number       = raw[i].field1
+      // quiz.category     = raw[i].field2
+      // quiz.detail       = raw[i].field3
+      // quiz.question     = finalText
+      // quiz.m_choice     = m_choice
+      // quiz.optionsA     = fullString.slice(0, bStart-1)
+      // quiz.optionsB     = fullString.slice(bStart, cStart-1)
+      // quiz.optionsC     = fullString.slice(cStart, dStart-1) //(A)
+      // quiz.optionsD     = fullString.slice(dStart, fullLength) //(A)
+      // // quiz.difficulty   = ''
+      // quiz.solution     =raw[i].field6
+      // quiz.answer       =raw[i].field5
+      // quiz.youtube_link = []
+      // quiz.like         = 0
+      // quiz.dislike      = 0
+      // newData.push(quiz)
+
+      // Question.create(quiz)
+    }
+
+
+    // request(url, function(err, respon, data) {
+    //   // if(err || res.statusCode !== 200) return;
+    //   if(err || respon.statusCode !== 200) {
+    //     console.log('@@@ Error : ', respon)
+    //   };
+    //   newData.push(data)
+    // });
+
+
+
+
+    // console.log('## newData : ', newData)
+    // Question.insertMany(newData)
+
+    // let name = []
+    // name.push(row.field2)
+    // let row2 = name[99]
+    // console.log('Result : ', row2)
+
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:newData}})
+    // res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:raw[100]}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+}) //inserDB
+
+
+
 
 
 
@@ -134,14 +367,6 @@ test.get('/newestUser', async (req, res)=>{
     res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
   }
 })
-
-
-
-
-
-
-
-
 
 
 
