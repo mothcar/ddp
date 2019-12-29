@@ -37,6 +37,19 @@ infocenter.get('/getInfocenterById', async (req, res)=> {
 
 })
 
+infocenter.get('/', async (req, res)=>{
+  try{
+
+    // log('@@ Env : ', process.env.API_KEY)
+    log('@@ Env : server OK')
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:'Good Server~~~'}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+})
+
 infocenter.get('/getMarker', async (req, res)=> {
   log('test : req.query :', req.query)
 
@@ -50,14 +63,14 @@ infocenter.get('/getMarker', async (req, res)=> {
   var infocenters = await Infocenter.find({
      location: { $geoWithin: { $box:  [ [ b_lng,b_lat ], [ t_lng,t_lat ] ] } }
   })
-  var places = await Place.find({
-     location: { $geoWithin: { $box:  [ [ b_lng,b_lat ], [ t_lng,t_lat ] ] } }
-  })
+  // var places = await Place.find({
+  //    location: { $geoWithin: { $box:  [ [ b_lng,b_lat ], [ t_lng,t_lat ] ] } }
+  // })
 
-  var lotMarker = infocenters.concat(places)
+  // var lotMarker = infocenters.concat(places)
   // await Infocenter.find()
-  log('position return : ', lotMarker)
-  res.status(200).json({msg:RCODE.OPERATION_SUCCEED, data:{item:lotMarker}})
+  log('position return : ', infocenters)
+  res.status(200).json({msg:RCODE.OPERATION_SUCCEED, data:{item:infocenters}})
 
 })
 

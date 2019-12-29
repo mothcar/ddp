@@ -5,6 +5,7 @@ const express = require('express')
 const xlsx    = require('xlsx')
 const test    = express.Router({})
 const dateFormat = require('dateformat');
+const dictionary    = require('../helper/dictionary')
 
 var dotenv = require('dotenv')
 dotenv.config()
@@ -79,7 +80,7 @@ test.get('/', async (req, res)=>{
     queryParams1 += '&' + encodeURIComponent('seq') + '=' + encodeURIComponent('17735069'); /*식별번호*/
     queryParams1 += '&' + encodeURIComponent('data_crt_ym') + '=' + encodeURIComponent('201806'); /*년월(yyyymm)*/
 
-    
+
     var request = require('request');
     // var url = 'http://apis.data.go.kr/B552015/NpsBplcInfoInqireService/getBassInfoSearch';
     var url = 'http://apis.data.go.kr/1611000/BldRgstService/getBrHsprcInfo';
@@ -181,24 +182,23 @@ test.get('/insertDb', async (req, res)=>{
 
     console.log('@@ length ; ', raw.length)
 
+    // 12,649여개를 불러오면 limit 에 걸릴까봐 일부러 적은 수를 Loop test하기위해 조정 : 3610까지 0개이고 이후로 10씩 증가했는데 3개 나옴
+    // 3615
     // for(var i=0; raw.length>i;i++) {
-    for(var i=0; 3615>i;i++) {
+    for(var i=0; 3900>i;i++) {
+    // for(var i=0; 3>i;i++) {
       var list = ['1시도_시','2시도_도','3시군구_시','4시군구_군','5시군구_구','6읍면동_읍','7읍면동_면','8읍면동_동','9읍면동_센터']
       var check = raw[i].유형_2
-      // var keys
+
       if(list.includes(check)) {
-        // keys = Object.keys( raw[i] );
-        // newData.push(keys[8].value)
         // newData.push(Object.values(raw[i])[8])
         // newData.push(raw[i])
-        console.log('@@@ start')
-        console.log('@@@ adress : ', Object.values(raw[i])[8])
+        // console.log('@@@ start')
+        // console.log('@@@ adress : ', Object.values(raw[i])[8])
 
         var params = "&appKey=" + API_KEY;
         params = params + '&searchTypCd=' + 'NtoO';
         params = params + '&reqAdd=' + encodeURIComponent(Object.values(raw[i])[8]);
-
-
 
         await fetch(`https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result`+params, {
           headers: {
@@ -208,8 +208,6 @@ test.get('/insertDb', async (req, res)=>{
         .then(response => response.json())
         .then(json => {
            // 받은 json으로 기능 구현
-           console.log(json.ConvertAdd.oldLat);
-           console.log(typeof json.ConvertAdd.oldLat);
            newData.push(json)
 
            var inputParam = {}
@@ -234,9 +232,11 @@ test.get('/insertDb', async (req, res)=>{
            inputParam.description = ''
            inputParam.image = ''
 
-           var pre_lat = json.ConvertAdd.newAddressList.newAddress[0].newLat
+           // var pre_lat = json.ConvertAdd.newAddressList.newAddress[0].newLat
+           var pre_lat = json.ConvertAdd.oldLat
            var lat = Number(pre_lat)
-           var pre_lng = json.ConvertAdd.newAddressList.newAddress[0].newLon
+           // var pre_lng = json.ConvertAdd.newAddressList.newAddress[0].newLon
+           var pre_lng = json.ConvertAdd.oldLon
            var lng = Number(pre_lng)
 
            inputParam.location = {
@@ -247,94 +247,16 @@ test.get('/insertDb', async (req, res)=>{
            // find if no
            Infocenter.create(inputParam)
            .then(result=>{
-             log('new infocenter reuslt : ', result)
+             // log('new infocenter reuslt : ', result)
            })
 
-             // return res.status(200).json({msg:RCODE.OPERATION_SUCCEED, data:{item:result}})
-           // this.setState({
-           //   place_name: json.documents.place_name,
-           //   ...
-           // });
         })
+        .catch(function() {
+            console.log('@@ No insert : ', Object.values(raw[i])[8]);
+        })  // end of then
+      } // end of if
 
-
-
-
-
-      }
-
-
-
-
-      // var quiz = {}
-      // var start = raw[i].field4.lastIndexOf("(A)")
-      // var end = raw[i].field4.length
-      // var m_choice = raw[i].field4.slice(start, end)
-      // var fullString = m_choice
-
-      // var fullLength = fullString.length
-      // var bStart = fullString.indexOf('(B)')
-      // var cStart = fullString.indexOf('(C)')
-      // var dStart = fullString.indexOf('(D)')
-      //
-      // let originText = raw[i].field4.slice(0, start-1)
-      // let removeLine = originText.replace(/^.*====.*$/mg, '<br />');
-      // let minusText = removeLine.replace(/^.*-----.*$/mg, '<br />');
-      // let finalText = minusText.replace(/(?:\r\n|\r|\n)/g, '<br />')
-
-
-      // let rawNewLineText = raw[i].field4.slice(0, start-1)
-      // let newLineText = rawNewLineText.replace(/(?:\r\n|\r|\n)/g, '<br />')
-      // var lines = newLineText.split('\n');
-      // var lines = newLineText.split('\n');
-      //
-      // for(var i = 0;i < lines.length;i++){
-      //     console.log(lines[i].indexOf('===='))
-      //     if(lines[i].indexOf('====')==0 ||lines[i].indexOf('----')==0) {
-      //       lines[i] = '<br />'
-      //     }
-      // }
-      // var newtext = lines.join('\n');
-
-      // quiz.number       = raw[i].field1
-      // quiz.category     = raw[i].field2
-      // quiz.detail       = raw[i].field3
-      // quiz.question     = finalText
-      // quiz.m_choice     = m_choice
-      // quiz.optionsA     = fullString.slice(0, bStart-1)
-      // quiz.optionsB     = fullString.slice(bStart, cStart-1)
-      // quiz.optionsC     = fullString.slice(cStart, dStart-1) //(A)
-      // quiz.optionsD     = fullString.slice(dStart, fullLength) //(A)
-      // // quiz.difficulty   = ''
-      // quiz.solution     =raw[i].field6
-      // quiz.answer       =raw[i].field5
-      // quiz.youtube_link = []
-      // quiz.like         = 0
-      // quiz.dislike      = 0
-      // newData.push(quiz)
-
-      // Question.create(quiz)
     }
-
-
-    // request(url, function(err, respon, data) {
-    //   // if(err || res.statusCode !== 200) return;
-    //   if(err || respon.statusCode !== 200) {
-    //     console.log('@@@ Error : ', respon)
-    //   };
-    //   newData.push(data)
-    // });
-
-
-
-
-    // console.log('## newData : ', newData)
-    // Question.insertMany(newData)
-
-    // let name = []
-    // name.push(row.field2)
-    // let row2 = name[99]
-    // console.log('Result : ', row2)
 
     res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:newData}})
     // res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:raw[100]}})
@@ -344,6 +266,130 @@ test.get('/insertDb', async (req, res)=>{
     res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
   }
 }) //inserDB
+
+
+//GET ADDRESS by Fetch TEST
+test.get('/getAddre', async (req, res)=>{
+  try{
+    // const request = require('ajax-request');
+    log('test req.body= :', req.body)
+
+    const fetch = require("node-fetch");
+    // var url = 'https://apis.openapi.sk.com/tmap/geo/convertAddress?version=1&format=json&callback=result'
+    var API_KEY = process.env.SK_API_KEY
+
+    var newData = []
+
+    var params = "&appKey=" + API_KEY;
+    params = params + '&searchTypCd=' + 'NtoO';
+    params = params + '&reqAdd=' + encodeURIComponent('강원도 평창군 미탄면 청옥산1길');
+
+    await fetch(`https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result`+params, {
+      headers: {
+        Authorization: `${API_KEY}`
+      }
+    })
+    .then(response => response.json())
+    .then(json => {
+       // 받은 json으로 기능 구현
+       newData.push(json)
+    })
+    .catch(function() {
+        console.log("error");
+    })  // end of then
+
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:newData}})
+    // res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:raw[100]}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+}) //by fetch
+
+//GET ADDRESS by Fetch TEST
+test.get('/getAddressByRequest', async (req, res)=>{
+  try{
+    // const request = require('ajax-request');
+    log('test req.body= :', req.body)
+
+    const request = require("request");
+    // var url = 'https://apis.openapi.sk.com/tmap/geo/convertAddress?version=1&format=json&callback=result'
+    var API_KEY = process.env.SK_API_KEY
+
+    var newData = []
+
+    var params = "&appKey=" + API_KEY;
+    params = params + '&searchTypCd=' + 'NtoO';
+    params = params + '&reqAdd=' + encodeURIComponent('강원도 평창군 미탄면 청옥산1길 1');
+
+    // var result = await request(`https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result`+params, {
+    //   headers: {
+    //     Authorization: `${API_KEY}`
+    //   }
+    // })
+    // await fetch(`https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result`+params, {
+    //   headers: {
+    //     Authorization: `${API_KEY}`
+    //   }
+    // })
+
+    var req = {
+                    host: 'https://api2.sktelecom.com/tmap/geo/convertAddress?version=1&format=json&callback=result'+params,
+                    path: '',
+                    method: 'GET',
+                    headers: {
+                      Authorization: `${API_KEY}`
+                    }
+                };
+    request(req,callback);
+    function callback(error, response, body) {
+      console.log('@@@ RESult : ', response)
+    }
+
+    // console.log('@@@ RESult : ', result)
+    // .then(response => response.json())
+    // .then(json => {
+    //    // 받은 json으로 기능 구현
+    //    newData.push(json)
+    // })
+    // .catch(function() {
+    //     console.log("error");
+    // })  // end of then
+
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:newData}})
+    // res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:raw[100]}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+}) //by request
+
+test.get('/dic', async (req, res)=>{
+  try{
+    // const request = require('ajax-request');
+    // #1 GET Word
+    log('test req.body= :', req.query)
+    // client param
+    let c_word = req.query.word
+    // dictionary object
+    let dic_word = dictionary
+
+    // #2 find keyword by Dictionary
+    // good person
+    let isWord = dic_word.good.includes(c_word)
+
+    // #3 rerurn Result
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:isWord}})
+  }
+  catch(err){
+    log('err=',err)
+    res.status(500).json({msg: RCODE.SERVER_ERROR, data:{}})
+  }
+}) // dic()
+
+
 
 
 

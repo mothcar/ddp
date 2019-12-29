@@ -31,6 +31,7 @@ app.use(cors())
 // init router
 app.use('/auth',          require('./endpoint/auth'))
 app.use('/users',         require('./endpoint/users'))
+app.use('/infocenter',    require('./endpoint/infocenter'))
 app.use('/bjcode',        require('./endpoint/bjcode'))
 app.use('/test',          require('./endpoint/test'))
 app.use('/helper',        require('./endpoint/helper'))
