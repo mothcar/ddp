@@ -7,6 +7,7 @@ const test    = express.Router({})
 const dateFormat = require('dateformat');
 const dictionary    = require('../helper/dictionary')
 
+
 var dotenv = require('dotenv')
 dotenv.config()
 
@@ -369,19 +370,68 @@ test.get('/getAddressByRequest', async (req, res)=>{
 test.get('/dic', async (req, res)=>{
   try{
     // const request = require('ajax-request');
+
+    // *******************************************************
     // #1 GET Word
+    // *******************************************************
     log('test req.body= :', req.query)
     // client param
     let c_word = req.query.word
     // dictionary object
     let dic_word = dictionary
 
+
+
+    // *******************************************************
     // #2 find keyword by Dictionary
+    // *******************************************************
     // good person
     let isWord = dic_word.good.includes(c_word)
 
+    // let a = "개발자 vue 그룹";
+    // let b = "vue 개발자 모임 javascript";
+    // let a = ['개발자', 'vue', '그룹', 'list'];
+    // let b = ['vue', 'list', '개발자', '모임', 'javascript'];
+    let aa = "개발자 vue js 그룹";
+    let bb = "vue list 개발자 모임 ";
+    let a = aa.split(' ');
+    let b = bb.split(' ');
+
+    // const pr = a.some(r=> b.includes(r))
+    var pr =[]
+    const found = a.some(r=> {
+      if(b.indexOf(r) >= 0) pr += r
+      // if(b.includes(r)) pr += r
+    })
+
+    // console.log('@@ Pr: ', pr)
+
+    // Extract english
+    const regex = /[a-zA-Z0-9]{1,}/gm;
+    const str = `vue js 그룹`;
+    let m;
+
+    while ((m = regex.exec(str)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === regex.lastIndex) {
+            regex.lastIndex++;
+        }
+
+        // The result can be accessed through the `m`-variable.
+        m.forEach((match, groupIndex) => {
+            // console.log(`Found match, group ${groupIndex}: ${match}`);
+            pr += match
+        });
+    }
+
+    console.log('@@ Pr: ', pr)
+
+
+
+    // End of Logic *******************************************************
     // #3 rerurn Result
-    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:isWord}})
+    // *******************************************************
+    res.json({msg:RCODE.OPERATION_SUCCEED, data:{item:pr}})
   }
   catch(err){
     log('err=',err)
